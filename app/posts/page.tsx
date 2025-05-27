@@ -4,27 +4,31 @@ import matter from 'gray-matter';
 import Link from 'next/link';
 
 export default function PostsPage() {
-  const postsDir = path.join(process.cwd(), '_posts');
-  const files = fs.readdirSync(postsDir);
+  const postsDirectory = path.join(process.cwd(), '_posts');
+  const filenames = fs.existsSync(postsDirectory) ? fs.readdirSync(postsDirectory) : [];
 
-  const posts = files.map((filename) => {
-    const filePath = path.join(postsDir, filename);
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    const { data } = matter(fileContents);
-    const slug = filename.replace(/\.md$/, '');
-    return {
-      title: data.title || slug,
-      slug,
-    };
-  });
+  const posts = filenames
+    .filter((filename) => filename.endsWith('.md'))
+    .map((filename) => {
+      const filePath = path.join(postsDirectory, filename);
+      const fileContents = fs.readFileSync(filePath, 'utf8');
+      const { data } = matter(fileContents);
+
+      return {
+        title: data.title || filename.replace(/\.md$/, ''),
+        slug: filename.replace(/\.md$/, ''),
+      };
+    });
 
   return (
-    <main className="p-4">
+    <main className="p-6">
       <h1 className="text-2xl font-bold mb-4">All Posts</h1>
-      <ul>
-        {posts.map(({ title, slug }) => (
-          <li key={slug}>
-            <Link href={`/posts/${slug}`}>{title}</Link>
+      <ul className="list-disc ml-6">
+        {posts.map((post) => (
+          <li key={post.slug}>
+            <Link href={`/posts/${post.slug}`} className="text-blue-600 underline">
+              {post.title}
+            </Link>
           </li>
         ))}
       </ul>
